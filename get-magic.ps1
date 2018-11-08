@@ -3,6 +3,8 @@
 
 $APIKey = 'virusTotal apikey'
 
+$FileSize="10MB"
+
 $Csv=import-csv "magic.csv"
 
 $Exclusion=@("*.ps1","*.txt","*.htm*")
@@ -42,7 +44,7 @@ else
 
 $global:FileSignature = New-Object System.Collections.ArrayList
 
-Get-ChildItem -Exclude $Exclusion | ?{-not $_.psiscontainer -and $_.length -lt 5MB  } |  %{
+Get-ChildItem -Exclude $Exclusion | ?{-not $_.psiscontainer -and $_.length -lt $FileSize  } |  %{
 
     $Props=[ordered]@{
    
