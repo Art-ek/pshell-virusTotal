@@ -1,11 +1,11 @@
 ﻿
-#$path="you folder path "
+#$path=""
 
-$APIKey = 'virusTotal apikey'
-
-$FileSize="10MB"
+$APIKey = 'apikey'
 
 $Csv=import-csv "magic.csv"
+
+$FileSize="10MB"
 
 $Exclusion=@("*.ps1","*.txt","*.htm*")
 
@@ -192,15 +192,15 @@ param(
 [Parameter(Mandatory=$True)]
 [array]$array
 )
-foreach($a in $array)
-{
-#4 calls a minute
-sleep 17
-$a.VirusTotal= get-virusTotal $a.hashes.md5
-$a.name
-$a.VirusTotal.response_code
-$a.VirusTotal.verbose_msg
-}
+    foreach($a in $array)
+    {
+        #4 calls a minute
+        sleep 17
+        $a.VirusTotal= get-virusTotal $a.hashes.md5
+        $a.name
+        $a.VirusTotal.response_code
+        $a.VirusTotal.verbose_msg
+    }
 }
 
 
@@ -225,25 +225,26 @@ param(
 for($x=0;$x -le $array.Length -1 ; $x++){
 if($array[$x].virustotal.response_code -eq 0)
     {
-    $array[$x].AVResult="Please scan me manually,seems that Virus Total could not find any info abot MD5 $($array[$x].name) hash "}
+        $array[$x].AVResult="Please scan me manually,seems that Virus Total could not find any info abot MD5 $($array[$x].name) hash "
+    }
     else
     {
-    foreach($vir in ($array[$x].virustotal.scans | gm -MemberType NoteProperty -ErrorAction SilentlyContinue)){
+        foreach($vir in ($array[$x].virustotal.scans | gm -MemberType NoteProperty -ErrorAction SilentlyContinue)){
 
-        if($vir.Definition -match"detected=(?<detected>.*?); version=(?<version>.*?); result=(?<result>.*?); update=(?<update>.*?})" ){
-            if ($Matches.detected -eq 'True'){
+            if($vir.Definition -match"detected=(?<detected>.*?); version=(?<version>.*?); result=(?<result>.*?); update=(?<update>.*?})" ){
+                if ($Matches.detected -eq 'True'){
                 
-                    $global:AVScanFound += "{0} - ({1}) - {2} - file {3}" -f $vir.name , $Matches.version, $Matches.result, $array[$x].name
+                        $global:AVScanFound += "{0} - ({1}) - {2} - file {3}" -f $vir.name , $Matches.version, $Matches.result, $array[$x].name
 
-                    $array[$x].AVResult+=@(
-                    $vir.name;
-                    $array[$x].name;
-                    $Matches.result
-                    )                            
+                        $array[$x].AVResult+=@(
+                        $vir.name;
+                        $array[$x].name;
+                        $Matches.result)
+                                                    
    
-             }else{
-                    $array[$x].AVResult="Wahey $($array[$x].name) is not malicious  "
-             }
+                 }else{
+                        $array[$x].AVResult="Wahey $($array[$x].name) is not malicious  "
+                 }
 
 
         }
