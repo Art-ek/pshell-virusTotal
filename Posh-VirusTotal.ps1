@@ -2,7 +2,7 @@
 
 $global:FullPath=""
 
-$APIKey = 'apikey'
+$APIKey = 'api key'
 
 $Csv=import-csv "magic.csv"
 
@@ -178,7 +178,7 @@ Check-Extension
                 #write-host "Signature $($File.signature) in $($File.name) does not match up $($c.magic), and corresponding file type $($c.extension) " -BackgroundColor red
                 
                 $temp  = new-object -TypeName psobject -Property $PropertyHolder
-                $temp.notes="Signature mismatch ,$($File.name) could be malicious - $($File.signature) does not match up the $($c.magic) signature which corresponds to ($($c.extension)) file type, the file hash will be checked with Virus Total engine  "
+                $temp.notes="Signature mismatch ,$($File.name) signature $($File.signature) does not match up the $($c.magic) signature which corresponds to ($($c.extension)) file type, the file hash will be checked with Virus Total engine  "
                 if($global:FilesExtension.name -eq $File.name){
                     continue
                 }else
@@ -426,18 +426,18 @@ Write-Host "internal error can't / by 0 or the max property is null "
 } else {
 $ratio=[system.math]::Round(($positives / $max)*100)
     if(($positives / $max)*100 -lt 20){
-        Write-Host "$($array[$x].name) probably false-positive, detection ratio is  $($ratio)%" -BackgroundColor Green
-        $array[$x].AVResult="$($array[$x].name) posible false-positive, detection ratio is  $($ratio)%"
-    }if(($positives/$max)*100 -lt 44){
-        Write-Host "$($array[$x].name) could be malicious, detection ratio is  -  $($ratio)%" -BackgroundColor Yellow -ForegroundColor Black
-        $array[$x].AVResult="$($array[$x].name) could be malicious, detection ratio is  $($ratio)%"
+        Write-Host "$($array[$x].name) probably false-positive, detection ratio is  $($ratio)% threat-level low" -BackgroundColor Green -ForegroundColor Black
+        $array[$x].AVResult="$($array[$x].name) posible false-positive, detection ratio is  $($ratio)% threat-level low"
+    }elseif(($positives/$max)*100 -lt 44){
+        Write-Host "$($array[$x].name) could be malicious, detection ratio is  -  $($ratio)% threat-level medium" -BackgroundColor Yellow -ForegroundColor Black
+        $array[$x].AVResult="$($array[$x].name) could be malicious, detection ratio is  $($ratio)% threat-level medium"
 
-    }if(($positives/$max)*100 -lt 60){
-        Write-Host "$($array[$x].name) possibly malicious detection ratio is  -  $($ratio)%" -BackgroundColor Red
-        $array[$x].AVResult="$($array[$x].name) probably malicious, detection ratio is  $($ratio)%"
+    }elseif(($positives/$max)*100 -lt 60){
+        Write-Host "$($array[$x].name) possibly malicious detection ratio is  -  $($ratio)% threat-level high" -BackgroundColor Red
+        $array[$x].AVResult="$($array[$x].name) probably malicious, detection ratio is  $($ratio)% threat-level high"
     }else{
-        Write-Host "$($array[$x].name) most likey malicious, detection  ratio is  - $($ratio)%" -BackgroundColor DarkRed
-        $array[$x].AVResult="$($array[$x].name) most likely malicious, detection ratio is - $($ratio)% "
+        Write-Host "$($array[$x].name) most likey malicious, detection  ratio is  - $($ratio)% threat-level very high" -BackgroundColor DarkRed
+        $array[$x].AVResult="$($array[$x].name) most likely malicious, detection ratio is - $($ratio)% threat-level very high"
     }
 
 }
@@ -449,7 +449,7 @@ $ratio=[system.math]::Round(($positives / $max)*100)
 
 }
 
-<#
+
 function show-menu{
 cls
 $title="Powershell for Virus Total"
@@ -490,23 +490,20 @@ switch($input){
         pause
     };break}
     2
-    {get-FileSignature $path ;break}
+    {$tmp=get-FileSignature $path 
+    $tmp | Out-GridView ;break}
     3
-    {check-extension
-       pause;break}
-    3a
-    {if($global:global:AllFiles.Length -gt 0){
-    $global:global:AllFiles
-    pause
+    {check-extension   ;break}
+    3a    {if($global:AllFiles.Length -gt 0){
+    $global:AllFiles | Out-GridView
+     
     };break}
     3b
     {if($global:FilesExtension.Length -gt 0){
-    $global:FilesExtension
-    pause
-    };break}
+    $global:FilesExtension | Out-GridView };break}
     4{;break}
     5{is-malisious?;break}
-    6{}
+   
 }
 
 
@@ -516,7 +513,7 @@ switch($input){
 
 }
 
-#>
+
 
 
 
