@@ -2,9 +2,9 @@
 
 $global:FullPath=''
 
-$APIKey = 'c3f307a9a433cca488e357db85393f4292114d1bc6ba39de4703fe4814174226'
+$APIKey = 'Apikey'
 
-$Csv=import-csv "C:\Users\arcys\Documents\powershell\magic.csv"
+$Csv=import-csv "magic.csv"
 
 $FileSize="10MB"
 
