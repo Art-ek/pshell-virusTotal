@@ -460,10 +460,3 @@ switch($input){
 
 
 
- 
-
-#get-signature -path
-
-#get-extension
-
-#check-all
