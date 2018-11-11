@@ -1,8 +1,8 @@
 ﻿
 
-$global:FullPath=''
+$global:FullPath=""
 
-$APIKey = 'Apikey'
+$APIKey = 'apikey'
 
 $Csv=import-csv "magic.csv"
 
@@ -19,20 +19,48 @@ $global:FileSignature=@()
 $global:AVScanFound = @()
 
 
-function get-FileSignature{
+function Get-FileSignature{
 
 <#
 .SYNOPSIS
-This is my abc function
+Get-FileSignature function reads selected files from chosen location
+
+Remember you have to download the magic.csv file before you run this script.
+Powershell version = 4.0 is required !
+ 
 .DESCRIPTION
-This function is used to demonstrate writing doc
-comments for a function.
-.NOTES
-	Its pre beta version, do not expect miracles.
+This function uses the get-childitem cmdlet, known as dir or ls.
+It will go through the selected folder and try to get detailed info about each file.
+What info exactly?
+- file magic number
+- file name, extension
+- md5 and sha256 hash
+
+Also we have few variables so you can adjust your searches to your needs.
+You can set the $Path variable or you can do it on the fly when calling get-signature function
+
+$APIKey = 'here goes you API key'
+
+$Csv=import-csv "path to your magic.csv file"
+
+$FileSize="10MB" change it to any size you like
+
+$Exclusion=@("*.ps1","*.txt","*.htm*","*.zip","*.gz") you can add more extensions accordingly
+
+Result will look like the following few lines.
+======================================
+fullname  : F:\crack\New Text Document
+extension : 
+name      : New Text Document
+signature : 58 35 4F 21 50 25 40 41
+hashes    : @{sha256=275A021BBFB6489E54D471899F7
+======================================
 .EXAMPLE
-fff
+Get-FileSignature -path $path
 .EXAMPLE
-iiioi
+Get-FileSignature -path c:\downloads
+.EXAMPLE
+Get-FileSignature  c:\downloads
 #>
 
 [CmdletBinding()]
@@ -96,19 +124,18 @@ $FileSignature
 
 
 
-function check-extension {
+function Check-Extension {
 <#
 .SYNOPSIS
-This is my abc function
+Checks if file has extension, double extension or unknown extension. 
 .DESCRIPTION
-This function is used to demonstrate writing doc
-comments for a function.
+This function is used to match file's magic number with its corresponding extension. 
+
 .NOTES
-	Its pre beta version, do not expect miracles.
+	It's pre beta version, very far from perfection
 .EXAMPLE
-fff
-.EXAMPLE
-iiioi
+Check-Extension
+
 #>
 
 
@@ -129,6 +156,7 @@ iiioi
                             
         foreach($c in $csv){
 
+
        
             if($File.extension -eq $c.Extension -and $File.signature -match $c.Magic){
        
@@ -145,12 +173,12 @@ iiioi
 
 
             }
-            elseif($File.extension -eq $c.Extension -and $File.signature -notmatch $c.Magic){
+            if($File.extension -eq $c.Extension -and $File.signature -notmatch $c.Magic){
            
                 #write-host "Signature $($File.signature) in $($File.name) does not match up $($c.magic), and corresponding file type $($c.extension) " -BackgroundColor red
                 
                 $temp  = new-object -TypeName psobject -Property $PropertyHolder
-                $temp.notes="Signature mismatch ,$($File.name) could be malicious - it does not match up the $($c.magic) signature which corresponds to ($($c.extension)) file type, the file hash will be checked with Virus Total engine  "
+                $temp.notes="Signature mismatch ,$($File.name) could be malicious - $($File.signature) does not match up the $($c.magic) signature which corresponds to ($($c.extension)) file type, the file hash will be checked with Virus Total engine  "
                 if($global:FilesExtension.name -eq $File.name){
                     continue
                 }else
@@ -166,11 +194,12 @@ iiioi
                     $global:AllFiles +=$temp
                 }
        
-            }elseif(!$File.extension -and $File.signature -match $c.Magic){
+            }if(!$File.extension -and ($File.signature -match $c.Magic)){
+
  
                 #write-host "Signature $($File.signature) in $($File.name) has no extension however signature $($c.Magic) corresponds to $($c.Extension)"   -BackgroundColor black
                 $temp  = new-object -TypeName psobject -Property $PropertyHolder
-                $temp.notes="File $($File.name) has No extension! file Signature $($File.signature) corresponds to $($c.magic), It could be malicious, this file hash will be checked with Virus Total engine  "
+                $temp.notes="File $($File.name) has No extension! However this file signature $($File.signature) corresponds to $($c.magic)-($($c.description)), It still could be malicious, this file hash will be checked with Virus Total engine  "
                 
                 if($global:FilesExtension.name  -eq $File.name){
                     continue
@@ -187,8 +216,11 @@ iiioi
                     $global:AllFiles +=$temp
                 }
 
-            }elseif(!$File.extension -and $File.signature -notmatch $c.Magic)
-            {
+            }
+
+            }if(!$File.extension -and ($File.signature -notmatch $c.Magic)){
+           
+
                 $temp  = new-object -TypeName psobject -Property $PropertyHolder
                 $temp.notes="File $($File.name) has No extension! it could be malicious the file hash will be checked with Virus Total engine  "
                 if($global:FilesExtension.name  -eq $File.name){                 
@@ -206,11 +238,35 @@ iiioi
                     #$temp.VirusTotal= get-virusTotal $File.hashes.md5
                     $global:AllFiles +=$temp
                 }
-            }
-   
-  
 
-   }
+            }   
+
+    
+    # catch all (catching anything else)
+    
+         if($File.extension -ne $c.Extension ){
+       
+                
+                $temp  = new-object -TypeName psobject -Property $PropertyHolder
+                $temp.notes="$($File.name) extension $($file.extension) is not recognised, it could be malicious the file hash will be checked with Virus Total engine "
+                if($global:AllFiles.name -eq $File.name){
+                    continue
+                }else
+                {
+                    #$temp.VirusTotal= get-virusTotal $File.hashes.md5
+                    $global:AllFiles +=$temp
+                }
+                if($global:FilesExtension.name  -eq $File.name){                 
+                    continue
+                }else
+                {
+                    #$temp.VirusTotal= get-virusTotal $File.hashes.md5
+                     
+                    $global:FilesExtension +=$temp
+                }
+
+
+            }
 
 }
 
@@ -237,19 +293,23 @@ enum ArrayType{
     extensions
 } 
 
-function query-virusTotal{
+function Query-VirusTotal{
 <#
 .SYNOPSIS
-This is my abc function
+Function to connect to Virus Total engine. 
 .DESCRIPTION
-This function is used to demonstrate writing doc
-comments for a function.
+This function sends a file hash, either md5 or sha256 to virus total and saves returned information in the array.
+
+We are going to have two arrays
+
+$AllFiles - contains all files from scanned directory 
+$FilesExtension -  files with no extension or wrong signature or file with a double extension will reside here.
 .NOTES
-	Its pre beta version, do not expect miracles.
+You going to need your own key, sign up and obtain your own virus total API key!
 .EXAMPLE
-fff
+Query-VirusTotal -arrayType extensions -hash sha256
 .EXAMPLE
-iiioi
+Query-VirusTotal everything sha256
 #>
 
 param(
@@ -284,8 +344,9 @@ switch($arrayType){
                 default {"Response error";break}
              }
         $a.VirusTotal.verbose_msg
-    }else{
-        Write-Host "File name : $($a.name) has been checked already"
+    }else
+        {
+            Write-Host "File name : $($a.name) has been checked already"
         }
 }
 }
@@ -306,19 +367,18 @@ return $VirusTotal= Invoke-RestMethod  -Uri 'https://www.virustotal.com/vtapi/v2
 
 }
 
-function is-malisious?{
+function Is-Malisious?{
 <#
 .SYNOPSIS
-This is my abc function
+Checks the threat-level and shows virus detection ratio.
 .DESCRIPTION
-This function is used to demonstrate writing doc
-comments for a function.
-.NOTES
-	Its pre beta version, do not expect miracles.
+This function checks virus detecion ratio for each file in array (AllFiles or FileExtension)
+There is another array with list of AV engines and detected viruses.
 .EXAMPLE
-fff
+Is-Malicious? everything
+Is-Malicious? extensions
 .EXAMPLE
-iiioi
+$AVScanFound | select-string "file name or AV engine etc"
 #>
 
 
@@ -368,11 +428,11 @@ $ratio=[system.math]::Round(($positives / $max)*100)
     if(($positives / $max)*100 -lt 20){
         Write-Host "$($array[$x].name) probably false-positive, detection ratio is  $($ratio)%" -BackgroundColor Green
         $array[$x].AVResult="$($array[$x].name) posible false-positive, detection ratio is  $($ratio)%"
-    }elseif(($positives/$max)*100 -lt 44){
+    }if(($positives/$max)*100 -lt 44){
         Write-Host "$($array[$x].name) could be malicious, detection ratio is  -  $($ratio)%" -BackgroundColor Yellow -ForegroundColor Black
         $array[$x].AVResult="$($array[$x].name) could be malicious, detection ratio is  $($ratio)%"
 
-    }elseif(($positives/$max)*100 -lt 60){
+    }if(($positives/$max)*100 -lt 60){
         Write-Host "$($array[$x].name) possibly malicious detection ratio is  -  $($ratio)%" -BackgroundColor Red
         $array[$x].AVResult="$($array[$x].name) probably malicious, detection ratio is  $($ratio)%"
     }else{
@@ -459,4 +519,6 @@ switch($input){
 #>
 
 
+
+ 
 
