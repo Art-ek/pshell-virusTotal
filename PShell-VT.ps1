@@ -2,13 +2,13 @@
 
 $global:FullPath=""
 
-$APIKey = 'key'
+$APIKey = 'APIKey'
 
 $Csv=import-csv "magic.csv"
 
-$FileSize="10MB"
+$FileSize="25MB"
 
-$Exclusion=@("*.ps1","*.txt","*.htm*","*.log","*.zip","*.gz")
+$Exclusion=@("*.ps1","*.txt","*.htm*","*.log","*.zip","*.gz","*.csv","*.ini","*.log")
 
 $global:FilesExtension=@()
 
@@ -39,7 +39,7 @@ What info exactly?
 Also we have few variables so you can adjust your searches to your needs.
 You can set the $Path variable or you can do it on the fly when calling get-signature function
 
-$APIKey = 'here goes you API key'
+$APIKey = 'here goes your API key'
 
 $Csv=import-csv "path to your magic.csv file"
 
@@ -162,9 +162,9 @@ Check-Extension
        
             if($File.extension -eq $c.Extension -and $File.signature -match $c.Magic){
        
-                #write-host "Signature $($File.signature) in $($File.name) corresponds to signature $($c.magic),file type $($c.extension) which is $($c.Description.toupper()),but it still might be MALICIOUS!!"
+                #write-host "Signature $($File.signature) in $($File.name) corresponds to signature $($c.magic),file type $($c.extension) which is $($c.Description.toupper()), but it still could be malicious"
                 $temp  = new-object -TypeName psobject -Property $PropertyHolder
-                $temp.notes="Signature $($File.signature) in $($File.name) corresponds to signature $($c.magic), file type $($c.extension) which is $($c.Description.toupper()),but it still might be MALICIOUS!!"
+                $temp.notes="Signature $($File.signature) in $($File.name) corresponds to signature $($c.magic), file type $($c.extension) which is $($c.Description.toupper()), but it still could be malicious"
                 if($global:AllFiles.name -eq $File.name){
                     continue
                 }else
@@ -479,32 +479,39 @@ $input=Read-Host "select operation q to quit"
 
 
 switch($input){
-    1 {$loc=Read-Host "Please provide location for scanning: "
-    if (Test-Path $loc){
-
-        Write-Host "Path tested OK"
-        $Path=$loc
+    1 {
+        $loc=Read-Host "Please provide location for scanning: "
+        if (Test-Path $loc){
+				Write-Host "Path tested OK"
+				$Path=$loc
+		}
+		else
+		{
+			Write-Host "Wrong path"
+			$path='no location!'
+			pause
+		};break
     }
-    else
-    {
-        Write-Host "Wrong path"
-        $path='no location!'
-        pause
-    };break}
-    2
-    {$tmp=get-FileSignature $path 
-    $tmp | Out-GridView ;break}
-    3
-    {check-extension   ;break}
-    3a    {if($global:AllFiles.Length -gt 0){
-    $global:AllFiles | Out-GridView
-     
-    };break}
-    3b
-    {if($global:FilesExtension.Length -gt 0){
-    $global:FilesExtension | Out-GridView };break}
-    4{;break}
-    5{is-malisious?;break}
+    2 {
+        $tmp=get-FileSignature $path 
+        $tmp | Out-GridView 
+        break
+      }
+    3 {
+        check-extension   
+        break
+      }
+    3a {
+        if
+            ($global:AllFiles.Length -gt 0){
+				$global:AllFiles | Out-GridView};break}
+    3b {
+        if
+            ($global:FilesExtension.Length -gt 0){
+				$global:FilesExtension | Out-GridView };break}
+    4 {Query-VirusTotal extensions ;break}
+    5 {is-malisious? extensions ;break
+      }
    
 }
 
