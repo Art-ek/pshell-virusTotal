@@ -2,13 +2,13 @@
 
 $global:FullPath=""
 
-$APIKey = 'api key'
+$APIKey = 'key'
 
 $Csv=import-csv "magic.csv"
 
 $FileSize="10MB"
 
-$Exclusion=@("*.ps1","*.txt","*.htm*","*.zip","*.gz")
+$Exclusion=@("*.ps1","*.txt","*.htm*","*.log","*.zip","*.gz")
 
 $global:FilesExtension=@()
 
@@ -78,7 +78,7 @@ if (Test-Path $Path){
 
     Write-Host "Path tested OK"
     $global:FullPath=$Path
-    cd $Path
+    pushd $Path
 }
 else
 {
@@ -90,7 +90,7 @@ $global:FileSignature = New-Object System.Collections.ArrayList
 
 Get-ChildItem -Path $Path -Recurse -Exclude $Exclusion | ?{-not $_.psiscontainer -and $_.length -lt $FileSize  } |  %{
 
-        $Props=[ordered]@{
+        $Props=@{
         fullname=$_.FullName
         extension=$_.Extension
         name=$_.Name
@@ -112,6 +112,8 @@ $Tmp.hashes=New-Object -TypeName psobject -Property @{
 $FileSignature.Add($Tmp) | Out-Null
 
 }
+
+popd
 
 $FileSignature
 
@@ -242,7 +244,7 @@ Check-Extension
             }   
 
     
-    # catch all (catching anything else)
+    #  (catching anything else)
     
          if($File.extension -ne $c.Extension ){
        
