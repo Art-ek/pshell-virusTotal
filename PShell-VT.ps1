@@ -2,7 +2,7 @@
 
 $global:FullPath=""
 
-$APIKey = 'apikey'
+$APIKey = 'APIKey'
 
 $Csv=import-csv "magic.csv"
 
