@@ -2,13 +2,13 @@
 
 $global:FullPath=""
 
-$APIKey = 'APIKey'
+$APIKey = 'apikey'
 
 $Csv=import-csv "magic.csv"
 
 $FileSize="25MB"
 
-$Exclusion=@("*.ps1","*.txt","*.htm*","*.log","*.zip","*.gz","*.csv","*.ini","*.log")
+$Exclusion=@("*.ps1","*.txt","*.htm*","*.log","*.gz","*.csv","*.ini","*.log")
 
 $global:FilesExtension=@()
 
@@ -34,7 +34,7 @@ It will go through the selected folder and try to get detailed info about each f
 What info exactly?
 - file magic number
 - file name, extension
-- md5 and sha256 hash
+- md5 and sha1 hash
 
 Also we have few variables so you can adjust your searches to your needs.
 You can set the $Path variable or you can do it on the fly when calling get-signature function
@@ -53,7 +53,7 @@ fullname  : F:\crack\New Text Document
 extension : 
 name      : New Text Document
 signature : 58 35 4F 21 50 25 40 41
-hashes    : @{sha256=275A021BBFB6489E54D471899F7
+hashes    : @{sha1=275A021BBFB6489E54D471899F7
 ======================================
 .EXAMPLE
 Get-FileSignature -path $path
@@ -105,7 +105,7 @@ $Tmp= New-Object -TypeName psobject -Property $Props
 $Tmp.hashes=New-Object -TypeName psobject -Property @{
 
       md5=Get-FileHash $_ -Algorithm MD5 | select -ExpandProperty  hash
-      sha256=Get-FileHash $_ -Algorithm sha256 | select -ExpandProperty  hash
+      sha1=Get-FileHash $_ -Algorithm sha1 | select -ExpandProperty  hash
    
    }
 
@@ -154,6 +154,7 @@ Check-Extension
               VirusTotal=@()
               Notes=$null
               AVResult=@()
+              ThreatLevel=""
         }  
                             
         foreach($c in $csv){
@@ -164,7 +165,7 @@ Check-Extension
        
                 #write-host "Signature $($File.signature) in $($File.name) corresponds to signature $($c.magic),file type $($c.extension) which is $($c.Description.toupper()), but it still could be malicious"
                 $temp  = new-object -TypeName psobject -Property $PropertyHolder
-                $temp.notes="Signature $($File.signature) in $($File.name) corresponds to signature $($c.magic), file type $($c.extension) which is $($c.Description.toupper()), but it still could be malicious"
+                $temp.notes="Signature ($($File.signature)) in ($($File.name)) corresponds to signature ($($c.magic)), and file type $($c.extension) which is $($c.Description.toupper())"
                 if($global:AllFiles.name -eq $File.name){
                     continue
                 }else
@@ -177,10 +178,10 @@ Check-Extension
             }
             if($File.extension -eq $c.Extension -and $File.signature -notmatch $c.Magic){
            
-                #write-host "Signature $($File.signature) in $($File.name) does not match up $($c.magic), and corresponding file type $($c.extension) " -BackgroundColor red
+                #write-host "Signature ($($File.signature)) in ($($File.name)) does not match up ($($c.magic)), and its corresponding file type $($c.extension) " -BackgroundColor red
                 
                 $temp  = new-object -TypeName psobject -Property $PropertyHolder
-                $temp.notes="Signature mismatch ,$($File.name) signature $($File.signature) does not match up the $($c.magic) signature which corresponds to ($($c.extension)) file type, the file hash will be checked with Virus Total engine  "
+                $temp.notes="Signature mismatch. ($($File.name)) magic number ($($File.signature)) does not match up the ($($c.magic)) and its corresponding file type ($($c.extension))  "
                 if($global:FilesExtension.name -eq $File.name){
                     continue
                 }else
@@ -199,9 +200,9 @@ Check-Extension
             }if(!$File.extension -and ($File.signature -match $c.Magic)){
 
  
-                #write-host "Signature $($File.signature) in $($File.name) has no extension however signature $($c.Magic) corresponds to $($c.Extension)"   -BackgroundColor black
+                #write-host "Signature ($($File.signature)) in ($($File.name)) has no extension however signature $($c.Magic) corresponds to $($c.Extension)"   -BackgroundColor black
                 $temp  = new-object -TypeName psobject -Property $PropertyHolder
-                $temp.notes="File $($File.name) has No extension! However this file signature $($File.signature) corresponds to $($c.magic)-($($c.description)), It still could be malicious, this file hash will be checked with Virus Total engine  "
+                $temp.notes="File ($($File.name)) has No extension! However this file signature ($($File.signature)) corresponds to ($($c.magic)) which is ($($c.description)) "
                 
                 if($global:FilesExtension.name  -eq $File.name){
                     continue
@@ -224,7 +225,7 @@ Check-Extension
            
 
                 $temp  = new-object -TypeName psobject -Property $PropertyHolder
-                $temp.notes="File $($File.name) has No extension! it could be malicious the file hash will be checked with Virus Total engine  "
+                $temp.notes="File $($File.name) has No extension! And file magic number ($($File.signature)) has not been identified  "
                 if($global:FilesExtension.name  -eq $File.name){                 
                     continue
                 }else
@@ -250,7 +251,7 @@ Check-Extension
        
                 
                 $temp  = new-object -TypeName psobject -Property $PropertyHolder
-                $temp.notes="$($File.name) extension $($file.extension) is not recognised, it could be malicious the file hash will be checked with Virus Total engine "
+                $temp.notes="$($File.name) has unknown extension ($($file.extension)) and cannot be recognised."
                 if($global:AllFiles.name -eq $File.name){
                     continue
                 }else
@@ -287,7 +288,7 @@ write-host "FilesExtension has $($global:FilesExtension.Length) entries"
 
 enum hash{
     md5
-    sha256
+    sha1
 }
 
 enum ArrayType{
@@ -300,7 +301,7 @@ function Query-VirusTotal{
 .SYNOPSIS
 Function to connect to Virus Total engine. 
 .DESCRIPTION
-This function sends a file hash, either md5 or sha256 to virus total and saves returned information in the array.
+This function sends a file hash, either md5 or sha1 to virus total and saves returned information in the array.
 
 We are going to have two arrays
 
@@ -309,9 +310,9 @@ $FilesExtension -  files with no extension or wrong signature or file with a dou
 .NOTES
 You going to need your own key, sign up and obtain your own virus total API key!
 .EXAMPLE
-Query-VirusTotal -arrayType extensions -hash sha256
+Query-VirusTotal -arrayType extensions -hash sha1
 .EXAMPLE
-Query-VirusTotal everything sha256
+Query-VirusTotal everything sha1
 #>
 
 param(
@@ -368,6 +369,8 @@ param(
 return $VirusTotal= Invoke-RestMethod  -Uri 'https://www.virustotal.com/vtapi/v2/file/report'  -Method 'GET' -Body @{  apikey = $APIKey; resource=$Hash }
 
 }
+
+
 
 function Is-Malisious?{
 <#
@@ -429,17 +432,21 @@ Write-Host "internal error can't / by 0 or the max property is null "
 $ratio=[system.math]::Round(($positives / $max)*100)
     if(($positives / $max)*100 -lt 20){
         Write-Host "$($array[$x].name) probably false-positive, detection ratio is  $($ratio)% threat-level low" -BackgroundColor Green -ForegroundColor Black
-        $array[$x].AVResult="$($array[$x].name) posible false-positive, detection ratio is  $($ratio)% threat-level low"
+        $array[$x].AVResult="$($array[$x].name) posible false-positive, detection ratio is - ($($ratio)%)"
+        $array[$x].ThreatLevel="Low"
     }elseif(($positives/$max)*100 -lt 44){
         Write-Host "$($array[$x].name) could be malicious, detection ratio is  -  $($ratio)% threat-level medium" -BackgroundColor Yellow -ForegroundColor Black
-        $array[$x].AVResult="$($array[$x].name) could be malicious, detection ratio is  $($ratio)% threat-level medium"
+        $array[$x].AVResult="$($array[$x].name) could be malicious, detection ratio is - ($($ratio)%)"
+        $array[$x].ThreatLevel="Medium"
 
     }elseif(($positives/$max)*100 -lt 60){
         Write-Host "$($array[$x].name) possibly malicious detection ratio is  -  $($ratio)% threat-level high" -BackgroundColor Red
-        $array[$x].AVResult="$($array[$x].name) probably malicious, detection ratio is  $($ratio)% threat-level high"
+        $array[$x].AVResult="$($array[$x].name) probably malicious, detection ratio is - ($($ratio)%)"
+        $array[$x].ThreatLevel="High"
     }else{
         Write-Host "$($array[$x].name) most likey malicious, detection  ratio is  - $($ratio)% threat-level very high" -BackgroundColor DarkRed
-        $array[$x].AVResult="$($array[$x].name) most likely malicious, detection ratio is - $($ratio)% threat-level very high"
+        $array[$x].AVResult="$($array[$x].name) most likely malicious, detection ratio is - ($($ratio)%) "
+        $array[$x].ThreatLevel="Very High"
     }
 
 }
@@ -459,7 +466,7 @@ $title="Powershell for Virus Total"
 
 "(1) - Provide path to directoty you want to scan - selected path is: $($path) "
 
-"(2) - Scan selected location and (check magic number and calculate MD5 and SHA256 files hash)"
+"(2) - Scan selected location and (check magic number and calculate MD5 and sha1 files hash)"
 
 "(3) - Check if file has no extension, double extension or signature mismatch  "
 "  (3a) - Display All files from scanned folder, currently it has $($global:AllFiles.Length) entries"
@@ -482,15 +489,16 @@ switch($input){
     1 {
         $loc=Read-Host "Please provide location for scanning: "
         if (Test-Path $loc){
-				Write-Host "Path tested OK"
-				$Path=$loc
-		}
-		else
-		{
-			Write-Host "Wrong path"
-			$path='no location!'
-			pause
-		};break
+            Write-Host "Path tested OK"
+        $Path=$loc
+    }
+    else
+    {
+        Write-Host "Wrong path"
+        $path='no location!'
+        pause
+    }
+    break
     }
     2 {
         $tmp=get-FileSignature $path 
@@ -504,11 +512,15 @@ switch($input){
     3a {
         if
             ($global:AllFiles.Length -gt 0){
-				$global:AllFiles | Out-GridView};break}
+            $global:AllFiles | select name , signature, notes, avresult, threatlevel | Out-GridView
+     
+       }
+       break
+       }
     3b {
         if
             ($global:FilesExtension.Length -gt 0){
-				$global:FilesExtension | Out-GridView };break}
+            $global:FilesExtension | select name , signature, notes, avresult, threatlevel |Out-GridView };break}
     4 {Query-VirusTotal extensions ;break}
     5 {is-malisious? extensions ;break
       }
