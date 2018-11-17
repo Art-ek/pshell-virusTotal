@@ -2,7 +2,7 @@
 
 $global:FullPath=""
 
-$APIKey = 'APIKey'
+$APIKey = 'VT APIKey'
 
 $Csv=import-csv "magic.csv"
 
@@ -364,10 +364,13 @@ param(
 [Parameter(Mandatory=$True)]
 [String]$Hash
 )
-
+try{
 #return $VirusTotal=$Hash |%{ Invoke-RestMethod  -Uri 'https://www.virustotal.com/vtapi/v2/file/report'  -Method 'GET' -Body @{  apikey = $APIKey; resource=$_ }}
 return $VirusTotal= Invoke-RestMethod  -Uri 'https://www.virustotal.com/vtapi/v2/file/report'  -Method 'GET' -Body @{  apikey = $APIKey; resource=$Hash }
-
+}catch{
+Write-Host "$($_.Exception.Message) - please check if VT address is correct or you have valid API key" -BackgroundColor DarkRed
+break
+}
 }
 
 
@@ -430,21 +433,26 @@ if($max -eq 0 -or $max -eq $null){
 Write-Host "internal error can't / by 0 or the max property is null "
 } else {
 $ratio=[system.math]::Round(($positives / $max)*100)
-    if(($positives / $max)*100 -lt 20){
-        Write-Host "$($array[$x].name) probably false-positive, detection ratio is  $($ratio)% threat-level low" -BackgroundColor Green -ForegroundColor Black
-        $array[$x].AVResult="$($array[$x].name) posible false-positive, detection ratio is - ($($ratio)%)"
+    if(($positives / $max)*100 -lt 1){
+        Write-Host "$($array[$x].name) no risk, detection ratio is  $($ratio)% threat-level NONE" -BackgroundColor Green -ForegroundColor Black
+        $array[$x].AVResult="$($array[$x].name) no risk, detection ratio is - ($($ratio)%)"
+        $array[$x].ThreatLevel="None"
+
+    }elseif(($positives / $max)*100 -lt 20){
+        Write-Host "$($array[$x].name) probably false-positive, detection ratio is  $($ratio)% threat-level LOW" -BackgroundColor Yellow -ForegroundColor Black
+        $array[$x].AVResult="$($array[$x].name) probably false-positive, detection ratio is - ($($ratio)%)"
         $array[$x].ThreatLevel="Low"
     }elseif(($positives/$max)*100 -lt 44){
-        Write-Host "$($array[$x].name) could be malicious, detection ratio is  -  $($ratio)% threat-level medium" -BackgroundColor Yellow -ForegroundColor Black
+        Write-Host "$($array[$x].name) could be malicious, detection ratio is  -  $($ratio)% threat-level MEDIUM" -BackgroundColor DarkYellow -ForegroundColor Black
         $array[$x].AVResult="$($array[$x].name) could be malicious, detection ratio is - ($($ratio)%)"
         $array[$x].ThreatLevel="Medium"
 
     }elseif(($positives/$max)*100 -lt 60){
-        Write-Host "$($array[$x].name) possibly malicious detection ratio is  -  $($ratio)% threat-level high" -BackgroundColor Red
+        Write-Host "$($array[$x].name) probably malicious detection ratio is  -  $($ratio)% threat-level HIGH" -BackgroundColor Red
         $array[$x].AVResult="$($array[$x].name) probably malicious, detection ratio is - ($($ratio)%)"
         $array[$x].ThreatLevel="High"
     }else{
-        Write-Host "$($array[$x].name) most likey malicious, detection  ratio is  - $($ratio)% threat-level very high" -BackgroundColor DarkRed
+        Write-Host "$($array[$x].name) most likey malicious, detection  ratio is  - $($ratio)% threat-level VERY HIGH" -BackgroundColor DarkRed
         $array[$x].AVResult="$($array[$x].name) most likely malicious, detection ratio is - ($($ratio)%) "
         $array[$x].ThreatLevel="Very High"
     }
