@@ -24,6 +24,7 @@ Detecting such “signature” in files is a very effective way of distinguishin
 More about file format here https://en.wikipedia.org/wiki/File_format
 
 And this is how magic number looks like in Hexadecimal notation.
+
 ![Alt text](./0.png)
 
 
