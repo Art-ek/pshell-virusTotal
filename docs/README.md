@@ -95,3 +95,116 @@ $Tmp.hashes=New-Object -TypeName psobject -Property @{
 }
 
 ```
+This function will:
+
+1.     “Scan” your files, calculate hash md5 and sha1.
+
+2.     Read file magic number.
+
+3.     And saves everything in array.
+
+Result
+![Alt text](./5.png)
+
+Or if youe use PS gridView
+![Alt text](./6.png)
+
+Next function, **Function Check-Extension**
+
+It checks whether file has an extension, double extension or unknown extension.
+
+This function in esence is used to match file's magic number with its corresponding extension.
+
+Output 
+![Alt text](./7.png)
+![Alt text](./8.png)
+
+You have noticed that we also have two more fields there? Their values are null for now but our next function will change it and populate the first one, called VirusTotal.
+
+The next **Query-VirusTotal function** sends previously calculated md5 or sha1 hash to the Virus Total engine and saves returned information in our array.
+
+Remember, to perform this step you are going to need a public API key. Simply sign in to the Virus Total portal and copy your API key to the script, and basically that’s all it takes. If you execute this function and the API key is correct you will see the following output on the screen.
+
+![Alt text](./9.png)
+
+Otherwise you will get one of these, so make sure your key is valid and the Virus Total address is correct.
+
+![Alt text](./10.png)
+
+And to display VirusTotal property use the following command.
+
+```
+PS C:\> $FilesExtension | select -ExpandProperty virustotal
+```
+We have much more information now. It tells us the total number of performed scans, how many scans are positives, used AV engines and even link to the Virus Total report has been included. 
+
+And there is more!
+
+**Function Is-Malisious?** Checks the threat-level and shows virus detection ratio !
+
+```
+snip
+$max=$array[$x].virustotal.total
+$positives=$array[$x].virustotal.positives
+if($max -eq 0 -or $max -eq $null){
+Write-Host "internal error can't / by 0 or the max property is null "
+} else {
+$ratio=[system.math]::Round(($positives / $max)*100)
+    if(($positives / $max)*100 -lt 1){
+        Write-Host "$($array[$x].name) no risk, detection ratio is  $($ratio)% threat-level NONE" -BackgroundColor Green -ForegroundColor Black
+        $array[$x].AVResult="$($array[$x].name) no risk, detection ratio is - ($($ratio)%)"
+        $array[$x].ThreatLevel="None"
+
+    }elseif(($positives / $max)*100 -lt 20){
+        Write-Host "$($array[$x].name) probably false-positive, detection ratio is  $($ratio)% threat-level LOW" -BackgroundColor Yellow -ForegroundColor Black
+        $array[$x].AVResult="$($array[$x].name) probably false-positive, detection ratio is - ($($ratio)%)"
+        $array[$x].ThreatLevel="Low"
+    }elseif(($positives/$max)*100 -lt 44){
+        Write-Host "$($array[$x].name) could be malicious, detection ratio is  -  $($ratio)% threat-level MEDIUM" -BackgroundColor DarkYellow -ForegroundColor Black
+        $array[$x].AVResult="$($array[$x].name) could be malicious, detection ratio is - ($($ratio)%)"
+        $array[$x].ThreatLevel="Medium"
+
+    }elseif(($positives/$max)*100 -lt 60){
+        Write-Host "$($array[$x].name) probably malicious detection ratio is  -  $($ratio)% threat-level HIGH" -BackgroundColor Red
+        $array[$x].AVResult="$($array[$x].name) probably malicious, detection ratio is - ($($ratio)%)"
+        $array[$x].ThreatLevel="High"
+ 
+.... snip
+```
+
+Result
+
+![Alt text](./11.png)
+
+And now to display only threat-level = very high we could use this combination
+
+```
+PS C:\> $FilesExtension | ?{$_.threatlevel -eq "very high"} | select fullname, threatlevel,avresult,notes | fl
+```
+It will display everything in very organised format
+
+![Alt text](./12.png)
+
+Hmm ... the **threat-level** for one of the files is very high, and I was expecting rather 4D 5A which correspondes to .exe format. In this case it would be reasonable to check Virus Total portal and analyse the scan report.
+
+Let's extract the hyperlink and see what Virus total website.
+
+![Alt text](./13.png)
+
+And below command will take you directly to the scan report for that malicious file
+
+```
+PS C:\> $FilesExtension | ?{$_.name -eq "readme.jpg"} | %{ start $_.virustotal.permalink}
+```
+
+![Alt text](./14.png)
+
+Ha! Luckily it was not malicious after all. It’s an **EICAR Anti-Virus Test File**.
+
+The EICAR Standard Anti-Malware Test file is a special 'dummy' file which is used to test the correct operation of malware detection scanners.
+
+So, all looks promising, the script is working fine. Virus total gives us correct reults :)
+
+
+
+
