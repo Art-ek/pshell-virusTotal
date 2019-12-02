@@ -1,4 +1,4 @@
-<h1>Hunting Malware with Powershell and Virus Total.</h1>
+###Hunting Malware with Powershell and Virus Total.###
 
 In my previous articles, I've used PowerShell to demonstrate how to build a TCP port scanner,
 how to find the "weak password" and how to use WMI with PowerShell for task automation. 
@@ -21,7 +21,7 @@ trigger this file to rename and execute? What then? Well, there is a magic word 
 called “File Magic Number”. And this is how you could determine if a “suspicious” file is a genuine one and corresponds 
 to its own extension. Think of it as a file “signature” or file ID which is hardcoded in the file. 
 Detecting such “signature” in files is a very effective way of distinguishing between many file formats. 
-More about file format here https://en.wikipedia.org/wiki/File_format
+More about file format here <https://en.wikipedia.org/wiki/File_format>
 
 And this is how magic number looks like in Hexadecimal notation.
 
