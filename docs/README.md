@@ -1,3 +1,5 @@
+| Another article about Automation in Powershell –> [System Audit in Powershell](https://art-ek.github.io/SystemAudit/) |
+
 ## Hunting Malware with Powershell and Virus Total. ##
 
 In my previous articles, I've used PowerShell to demonstrate how to build a **TCP port scanner**,
