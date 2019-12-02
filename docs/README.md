@@ -1,5 +1,4 @@
-| An article about Automation in Powershell –> [System Audit in Powershell](https://art-ek.github.io/SystemAudit/) |
-| An article about HTTP status codes –> [HTTP status codes](https://art-ek.github.io/HTTP-codes-URL-and-redirects/) |
+| Another article about Hunting malware with Powershell --> [PS for hunting malware](https://art-ek.github.io/pshell-virusTotal/) | An article about HTTP status codes –> [HTTP status codes](https://art-ek.github.io/HTTP-codes-URL-and-redirects/) |
 
 ## Hunting Malware with Powershell and Virus Total. ##
 
