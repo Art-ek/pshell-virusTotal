@@ -1,4 +1,4 @@
-##Hunting Malware with Powershell and Virus Total.##
+<h1>Hunting Malware with Powershell and Virus Total.</h1>
 
 In my previous articles, I've used PowerShell to demonstrate how to build a TCP port scanner,
 how to find the "weak password" and how to use WMI with PowerShell for task automation. 
