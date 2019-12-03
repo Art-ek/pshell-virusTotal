@@ -94,7 +94,7 @@ Get-ChildItem -Path $Path -Recurse -Exclude $Exclusion | ?{-not $_.psiscontainer
         fullname=$_.FullName
         extension=$_.Extension
         name=$_.Name
-        signature=[system.bitconverter]::ToString((Get-Content $_ -TotalCount 8 -ReadCount 1 -Encoding byte) ) -replace '-',' '
+        signature=[system.bitconverter]::ToString((Get-Content $_ -TotalCount 8 -ReadCount 1 -AsByteStream) ) -replace '-',' '
         hashes=$null      
    
 
