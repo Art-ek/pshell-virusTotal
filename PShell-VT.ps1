@@ -1,10 +1,29 @@
-﻿
+﻿<#
+.SYNOPSIS
+    Hunting malware with powershell 
+.DESCRIPTION
+    Main help here
+.NOTES
+	It's pre beta version, very far from perfection
+.EXAMPLE
+The functions are: 
+
+Get-FileSignature path $path
+Get-FileSignature -path c:\download
+Check-Extension
+Query-VirusTotal -arrayType extensions -hash sha1
+Query-VirusTotal -arrayType everything -hash md5
+Is-Malicious? everything
+Is-Malicious? extensions
+$AVScanFound | select-string "file name or AV engine etc"
+#>
+
 
 $global:FullPath=""
 
-$APIKey = 'VT APIKey'
+$APIKey = 'your api key'
 
-$Csv=import-csv "magic.csv"
+$Csv=import-csv "./magic.csv"
 
 $FileSize="25MB"
 
@@ -94,7 +113,7 @@ Get-ChildItem -Path $Path -Recurse -Exclude $Exclusion | ?{-not $_.psiscontainer
         fullname=$_.FullName
         extension=$_.Extension
         name=$_.Name
-        signature=[system.bitconverter]::ToString((Get-Content $_ -TotalCount 8 -ReadCount 1 -AsByteStream) ) -replace '-',' '
+        signature=[system.bitconverter]::ToString((Get-Content $_ -TotalCount 8 -ReadCount 1 -AsByteStream  ) ) -replace '-',' '
         hashes=$null      
    
 
@@ -447,14 +466,14 @@ $ratio=[system.math]::Round(($positives / $max)*100)
         $array[$x].AVResult="$($array[$x].name) could be malicious, detection ratio is - ($($ratio)%)"
         $array[$x].ThreatLevel="Medium"
 
-    }elseif(($positives/$max)*100 -lt 60){
+    }elseif(($positives/$max)*100 -lt 70){
         Write-Host "$($array[$x].name) probably malicious detection ratio is  -  $($ratio)% threat-level HIGH" -BackgroundColor Red
         $array[$x].AVResult="$($array[$x].name) probably malicious, detection ratio is - ($($ratio)%)"
         $array[$x].ThreatLevel="High"
     }else{
-        Write-Host "$($array[$x].name) most likey malicious, detection  ratio is  - $($ratio)% threat-level VERY HIGH" -BackgroundColor DarkRed
+        Write-Host "$($array[$x].name) most likey malicious, detection  ratio is  - $($ratio)% threat-level CRITICAL" -BackgroundColor DarkRed
         $array[$x].AVResult="$($array[$x].name) most likely malicious, detection ratio is - ($($ratio)%) "
-        $array[$x].ThreatLevel="Very High"
+        $array[$x].ThreatLevel="Critical"
     }
 
 }
