@@ -8,13 +8,13 @@
 .EXAMPLE
 The functions are: 
 
-Get-FileSignature path $path
-Get-FileSignature -path c:\download
-Check-Extension
-Query-VirusTotal -arrayType extensions -hash sha1
-Query-VirusTotal -arrayType everything -hash md5
-Is-Malicious? everything
-Is-Malicious? extensions
+Get-FileSignature path $path (help Get-FileSignature)
+Get-FileSignature -path c:\download (help Get-FileSignature)
+Check-Extension (help Check-Extension)
+Query-VirusTotal -arrayType extensions -hash sha1 (Query-VirusTotal)
+Query-VirusTotal -arrayType everything -hash md5 (Query-VirusTotal)
+Is-Malicious? everything (help Is-Malicious?)
+Is-Malicious? extensions (help Is-Malicious?)
 $AVScanFound | select-string "file name or AV engine etc"
 #>
 
@@ -45,7 +45,7 @@ function Get-FileSignature{
 Get-FileSignature function reads selected files from chosen location
 
 Remember you have to download the magic.csv file before you run this script.
-Powershell version = 4.0 is required !
+Powershell version = 6/7/core is required !
  
 .DESCRIPTION
 This function uses the get-childitem cmdlet, known as dir or ls.
